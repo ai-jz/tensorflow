@@ -13,26 +13,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef XLA_TESTS_HLO_TEST_BASE_WITH_MLIR_CONTEXT_H_
-#define XLA_TESTS_HLO_TEST_BASE_WITH_MLIR_CONTEXT_H_
+#ifndef XLA_STREAM_EXECUTOR_KERNEL_STATS_H_
+#define XLA_STREAM_EXECUTOR_KERNEL_STATS_H_
 
-#include "mlir/IR/MLIRContext.h"
-#include "xla/hlo/analysis/symbolic_expr.h"
-#include "xla/tests/hlo_test_base.h"
+#include <string>
 
-namespace xla {
+#include "absl/container/flat_hash_map.h"
 
-class HloTestBaseWithMLIRContext : public HloTestBase {
- public:
-  mlir::MLIRContext* mlir_context() {
-    RegisterSymbolicExprStorage(&mlir_context_);
-    return &mlir_context_;
-  }
-
- private:
-  mlir::MLIRContext mlir_context_;
+// Stats about a single kernel.
+struct KernelStats {
+  // The number of spilled register bytes in the kernel for stores.
+  int store_bytes_spilled = 0;
+  // The number of spilled register bytes in the kernel for loads.
+  int load_bytes_spilled = 0;
 };
 
-}  // namespace xla
+// Map from a function/kernel name to its kernel stats.
+using ModuleStats = absl::flat_hash_map<std::string, KernelStats>;
 
-#endif  // XLA_TESTS_HLO_TEST_BASE_WITH_MLIR_CONTEXT_H_
+#endif  // XLA_STREAM_EXECUTOR_KERNEL_STATS_H_
