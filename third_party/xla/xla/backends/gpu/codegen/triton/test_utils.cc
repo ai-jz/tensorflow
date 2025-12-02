@@ -328,8 +328,7 @@ absl::Status ConvertEntryToTritonFusion(HloModule* module,
 
   gpu::GpuBackendConfig gpu_config;
   if (use_nested_gemm_fusions) {
-    gpu_config.mutable_fusion_backend_config()->set_kind(
-        kTritonNestedGemmFusionKind);
+    gpu_config.mutable_fusion_backend_config()->set_kind(kTritonGemmFusionKind);
   } else {
     gpu_config.mutable_fusion_backend_config()->set_kind(kTritonFusionKind);
   }
