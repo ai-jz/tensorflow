@@ -209,6 +209,9 @@ class GpuPerformanceModelBase {
       const se::DeviceDescription& gpu_device_info, int64_t num_blocks,
       int64_t num_threads_per_block);
 
+  static int64_t CalculatePeakMatrixFlopsPerNs(
+      const se::DeviceDescription& gpu_device_info, xla::PrimitiveType dtype);
+
   static absl::Duration ComputeTime(
       const se::DeviceDescription& gpu_device_info, int64_t flops,
       int64_t num_blocks, int64_t num_threads_per_block);
