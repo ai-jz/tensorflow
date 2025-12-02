@@ -182,13 +182,15 @@ constexpr size_t kFbAlignment = 16;
 static StatusOr<tflite::TensorType> GetTFLiteType(Type type,
                                                   bool is_signed = true) {
   if (!is_signed) {
-    if (type.isSignlessInteger(8)) {
+    if (type.isSignlessInteger(4)) {
+      return tflite::TensorType_UINT4;
+    } else if (type.isSignlessInteger(8)) {
       return tflite::TensorType_UINT8;
     } else if (type.isSignlessInteger(16)) {
       return tflite::TensorType_UINT16;
     } else {
       return Status(absl::StatusCode::kInvalidArgument,
-                    "'isSigned' can only be set for 8/16-bits integer type");
+                    "'isSigned' can only be set for 4/8/16-bits integer type");
     }
   }
 
