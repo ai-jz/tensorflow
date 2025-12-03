@@ -32,6 +32,7 @@ xla_cc_test(
     name = "buffer_use_test",
     srcs = ["buffer_use_test.cc"],
     deps = [
+        "//xla:shape_util",
         ":buffer_use",
         "//xla/service:buffer_assignment",
         "@com_google_absl//absl/strings",
