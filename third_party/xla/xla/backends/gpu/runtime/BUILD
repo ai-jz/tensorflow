@@ -3056,6 +3056,7 @@ xla_cc_test(
     name = "thunk_buffer_debug_pass_test",
     srcs = ["thunk_buffer_debug_pass_test.cc"],
     deps = [
+        "//xla:shape_util",
         ":buffers_checksum_thunk",
         ":buffers_float_check_thunk",
         ":conditional_thunk",

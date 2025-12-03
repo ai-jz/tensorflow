@@ -19,6 +19,7 @@ limitations under the License.
 #include <cstdint>
 #include <optional>
 #include <tuple>
+#include <utility>
 
 #include "absl/base/attributes.h"
 #include "absl/container/flat_hash_set.h"
@@ -61,16 +62,26 @@ class BufferUse {
     kDefinedOnInputAndOutput = kDefinedOnInput | kDefinedOnOutput,
   };
 
+  // 2-arg constructor: derives content validity from access type.
   BufferUse(BufferAllocation::Slice slice, MemoryAccess access)
       : BufferUse(slice, access,
                   access == MemoryAccess::kRead
                       ? ContentValidity::kDefinedOnInputAndOutput
-                      : ContentValidity::kDefinedOnOutput) {}
+                      : ContentValidity::kDefinedOnOutput,
+                  std::nullopt) {}
 
+  // 3-arg constructor: explicitly specify content validity, no shape.
   BufferUse(BufferAllocation::Slice slice, MemoryAccess access,
-            ContentValidity content_validity,
-            std::optional<Shape> shape = std::nullopt)
-      : slice_(slice), access_(access), content_validity_(content_validity) {}
+            ContentValidity content_validity)
+      : BufferUse(slice, access, content_validity, std::nullopt) {}
+
+  // 4-arg constructor: full specification including shape.
+  BufferUse(BufferAllocation::Slice slice, MemoryAccess access,
+            ContentValidity content_validity, std::optional<Shape> shape)
+      : slice_(slice),
+        shape_(std::move(shape)),
+        access_(access),
+        content_validity_(content_validity) {}
 
   ABSL_DEPRECATED("Please provide shape as well.")
   static BufferUse Read(BufferAllocation::Slice slice) {
@@ -84,35 +95,25 @@ class BufferUse {
                      ContentValidity::kDefinedOnOutput);
   }
 
-  ABSL_DEPRECATED("Please provide shape as well.")
-  static BufferUse Scratch(BufferAllocation::Slice slice) {
-    return BufferUse(slice, MemoryAccess::kWrite, ContentValidity::kUndefined);
-  }
-
-  ABSL_DEPRECATED("Please provide shape as well.")
-  static BufferUse Consume(BufferAllocation::Slice slice) {
-    return BufferUse(slice, MemoryAccess::kWrite,
-                     ContentValidity::kDefinedOnInput);
-  }
-
   static BufferUse Read(BufferAllocation::Slice slice, Shape shape) {
     return BufferUse(slice, MemoryAccess::kRead,
-                     ContentValidity::kDefinedOnInputAndOutput, shape);
+                     ContentValidity::kDefinedOnInputAndOutput,
+                     std::move(shape));
   }
 
   static BufferUse Write(BufferAllocation::Slice slice, Shape shape) {
     return BufferUse(slice, MemoryAccess::kWrite,
-                     ContentValidity::kDefinedOnOutput, shape);
+                     ContentValidity::kDefinedOnOutput, std::move(shape));
   }
 
   static BufferUse Scratch(BufferAllocation::Slice slice, Shape shape) {
     return BufferUse(slice, MemoryAccess::kWrite, ContentValidity::kUndefined,
-                     shape);
+                     std::move(shape));
   }
 
   static BufferUse Consume(BufferAllocation::Slice slice, Shape shape) {
     return BufferUse(slice, MemoryAccess::kWrite,
-                     ContentValidity::kDefinedOnInput, shape);
+                     ContentValidity::kDefinedOnInput, std::move(shape));
   }
 
   // Returns true if the buffer contains initialized data when thunk starts
@@ -160,6 +161,7 @@ class BufferUse {
   const BufferAllocation::Slice& slice() const { return slice_; }
   MemoryAccess access() const { return access_; }
   ContentValidity content_validity() const { return content_validity_; }
+  const std::optional<Shape>& shape() const { return shape_; }
 
   template <typename H>
   friend H AbslHashValue(H h, const BufferUse& use) {
